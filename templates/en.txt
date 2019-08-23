@@ -1,0 +1,11 @@
+**{}** (**{}**) • {:%m-%d-%Y} at {:%H:%M:%S} (CST)
+
+[Original Tweet]({})
+
+*****
+
+{}
+
+{}*****
+
+^{:,} ^Retweets ^| ^{:,} ^Likes ^| ^{:,} ^Replies ^| [^GitHub](https://git.io/fjb4P)
