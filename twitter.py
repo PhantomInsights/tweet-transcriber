@@ -134,6 +134,12 @@ def scrape_tweet(html):
     replies = int(tweet.find_next(
         "span", "ProfileTweet-action--reply").find("span")["data-tweet-stat-count"])
 
+    # Fix for emojis so they appear in text and not as images.
+    for tag in tweet.find_all("img"):
+
+        if "Emoji" in tag["class"]:
+            tag.string = tag["alt"]
+
     # We check if the tweet has embedded pictures.
     has_twitter_pics = False
 
