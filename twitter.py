@@ -118,24 +118,26 @@ def scrape_tweet(html):
     # We init the BeautifulSoup object and begin extracting values.
     soup = BeautifulSoup(html, "html.parser")
 
+    tweet = soup.find("p", "TweetTextSize--jumbo")
+
     permalink = soup.find("link", {"rel": "canonical"})["href"]
     timestamp = int(soup.find("span", "_timestamp")["data-time"])
     fullname = soup.find("a", "fullname").text.strip()
     username = soup.find("div", "ProfileCardMini-screenname").text.strip()
 
-    favorites = int(soup.find(
+    favorites = int(tweet.find_next(
         "span", "ProfileTweet-action--favorite").find("span")["data-tweet-stat-count"])
 
-    retweets = int(soup.find(
+    retweets = int(tweet.find_next(
         "span", "ProfileTweet-action--retweet").find("span")["data-tweet-stat-count"])
 
-    replies = int(soup.find(
+    replies = int(tweet.find_next(
         "span", "ProfileTweet-action--reply").find("span")["data-tweet-stat-count"])
 
     # We check if the tweet has embedded pictures.
     has_twitter_pics = False
 
-    for tag in soup.find("p", "tweet-text").find_all("a"):
+    for tag in tweet.find_all("a"):
 
         # If the pic.twitter.com domain is found we delete the tag and break the loop.
         if "pic.twitter.com" in tag.text:
@@ -152,8 +154,7 @@ def scrape_tweet(html):
         image_links = list()
 
     # We add a little padding for the other links inside the tweet message.
-    tweet_text = soup.find(
-        "p", "tweet-text").text.replace("http", " http").strip()
+    tweet_text = tweet.text.replace("http", " http").strip()
 
     return {
         "permalink": permalink,

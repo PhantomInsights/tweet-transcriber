@@ -79,21 +79,25 @@ reddit.comment(comment.id).reply("\n\n*****".join(comment_text))
 
 To extract the values from the tweet HTML source I used `BeautifulSoup` and studied where I could reliably find the values I needed, such as the number of likes, retweets, replies and the timestamp.
 
+It is very important to look for the tweet that has `jumbo` in its class name since it is the linked tweet.
+
 ```python
 soup = BeautifulSoup(html, "html.parser")
+
+tweet = soup.find("p", "TweetTextSize--jumbo")
 
 permalink = soup.find("link", {"rel": "canonical"})["href"]
 timestamp = int(soup.find("span", "_timestamp")["data-time"])
 fullname = soup.find("a", "fullname").text.strip()
 username = soup.find("div", "ProfileCardMini-screenname").text.strip()
 
-favorites = int(soup.find(
+favorites = int(tweet.find_next(
     "span", "ProfileTweet-action--favorite").find("span")["data-tweet-stat-count"])
 
-retweets = int(soup.find(
+retweets = int(tweet.find_next(
     "span", "ProfileTweet-action--retweet").find("span")["data-tweet-stat-count"])
 
-replies = int(soup.find(
+replies = int(tweet.find_next(
     "span", "ProfileTweet-action--reply").find("span")["data-tweet-stat-count"])
 ```
 
@@ -104,7 +108,7 @@ We check for that and if the link does exist we remove it from the tweet body an
 ```python
 has_twitter_pics = False
 
-for tag in soup.find("p", "tweet-text").find_all("a"):
+for tag in tweet.find_all("a"):
 
     # If the pic.twitter.com domain is found we delete the tag and break the loop.
     if "pic.twitter.com" in tag.text:
@@ -125,7 +129,7 @@ This dictionary can then be easily saved to CSV or JSON files using the built in
 
 ## Conclusion
 
-I plan to use these bots only on the subreddits I manage as an extra enhancement. As of lately when celebrities and politicians publish highly controversial tweets they often delete them after a few minutes and I despise that behaviour.
+I'm currently using these bots only on the subreddits I manage as an extra enhancement to the user experience. As of lately when celebrities and politicians publish highly controversial tweets they often delete them after a few minutes and I despise that behaviour.
 
 One of the purposes of this project is to have a backup mechanism for said tweets. It can also be used to keep a local copy of the tweets and perform analysis on them in an easier to parse format (Python dictionary).
 
