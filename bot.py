@@ -91,7 +91,7 @@ def check_comments(reddit):
                                 link.replace("mobile.", ""), MESSAGE_TEMPLATE))
 
                     reddit.comment(comment.id).reply(
-                        "\n\n*****".join(comment_text))
+                        "\n\n*****\n\n".join(comment_text))
 
                     update_log(COMMENTS_LOG, comment.id)
                     print("Replied:", comment.id)
