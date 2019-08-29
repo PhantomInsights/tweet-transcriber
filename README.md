@@ -58,7 +58,7 @@ update_log(POSTS_LOG, submission.id)
 print("Replied:", submission.id)
 ```
 
-The process is a bit simila for tweet links inside a comment, all links are extracted from the comment and those that match our criteria are transcribed and added into a list.
+The process is a bit similar for tweet links inside a comment, all links are extracted from the comment and those that match our criteria are transcribed and added into a list.
 
 ```python
 # Sometimes a comment may contain several links, we look for all of them.
