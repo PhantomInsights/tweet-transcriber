@@ -5,6 +5,7 @@ If it finds tweet links it replies to them with a transcribed tweet.
 """
 
 import praw
+from bs4 import BeautifulSoup
 
 import config
 from twitter import transcribe_tweet
@@ -79,16 +80,21 @@ def check_comments(reddit):
         for comment in reddit.subreddit(subreddit).comments(limit=100):
 
             # Only take into account new comments with a valid twitter link and not being made by this bot.
-            if "twitter.com" in comment.body and "/status/" in comment.body and comment.author != config.REDDIT_USERNAME and comment.id not in processed_comments:
+            if "twitter.com" in comment.body_html and "/status/" in comment.body_html and comment.author != config.REDDIT_USERNAME and comment.id not in processed_comments:
 
                 try:
                     # Sometimes a comment may contain several links, we look for all of them.
                     comment_text = list()
 
-                    for link in comment.body.split():
-                        if "twitter.com" in link and "/status/" in link:
+                    # Get all tweet links.
+                    soup = BeautifulSoup(comment.body_html, "html.parser")
+
+                    for link in soup.find_all("a"):
+
+                        if "twitter.com" in link["href"] and "/status/" in link["href"]:
+
                             comment_text.append(transcribe_tweet(
-                                link.replace("mobile.", ""), MESSAGE_TEMPLATE))
+                                link["href"].replace("mobile.", ""), MESSAGE_TEMPLATE))
 
                     reddit.comment(comment.id).reply(
                         "\n\n*****\n\n".join(comment_text))
