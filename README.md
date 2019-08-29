@@ -64,15 +64,19 @@ The process is a bit simila for tweet links inside a comment, all links are extr
 # Sometimes a comment may contain several links, we look for all of them.
 comment_text = list()
 
-for link in comment.body.split():
-    if "twitter.com" in link and "/status/" in link:
-        comment_text.append(transcribe_tweet(link.replace("mobile.", ""), MESSAGE_TEMPLATE))
+# Get all tweet links.
+soup = BeautifulSoup(comment.body_html, "html.parser")
+
+for link in soup.find_all("a"):
+
+    if "twitter.com" in link["href"] and "/status/" in link["href"]:
+        comment_text.append(transcribe_tweet(link["href"].replace("mobile.", ""), MESSAGE_TEMPLATE))
 ```
 
 This list is then joined into a string and this string is then used to reply to the comment.
 
 ```python
-reddit.comment(comment.id).reply("\n\n*****".join(comment_text))
+reddit.comment(comment.id).reply("\n\n*****\n\n".join(comment_text))
 ```
 
 ## Web Scraper
@@ -87,7 +91,7 @@ soup = BeautifulSoup(html, "html.parser")
 tweet = soup.find("p", "TweetTextSize--jumbo")
 
 permalink = soup.find("link", {"rel": "canonical"})["href"]
-timestamp = int(soup.find("span", "_timestamp")["data-time"])
+timestamp = int(tweet.find_previous("span", "_timestamp")["data-time"])
 fullname = soup.find("a", "fullname").text.strip()
 username = soup.find("div", "ProfileCardMini-screenname").text.strip()
 
