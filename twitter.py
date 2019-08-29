@@ -121,7 +121,7 @@ def scrape_tweet(html):
     tweet = soup.find("p", "TweetTextSize--jumbo")
 
     permalink = soup.find("link", {"rel": "canonical"})["href"]
-    timestamp = int(soup.find("span", "_timestamp")["data-time"])
+    timestamp = int(tweet.find_previous("span", "_timestamp")["data-time"])
     fullname = soup.find("a", "fullname").text.strip()
     username = soup.find("div", "ProfileCardMini-screenname").text.strip()
 
