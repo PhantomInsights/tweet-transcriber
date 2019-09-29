@@ -45,23 +45,39 @@ def transcribe_tweet(tweet_url, template):
         tweet_date = datetime.fromtimestamp(tweet_data["timestamp"])
 
         # By default we assume we have image links and initialize the inner links template.
-        links_text = "*****\n\n**Image(s):**\n\n"
+        image_links_text = "*****\n\n**Image(s):**\n\n"
 
-        if len(tweet_data["links"]) > 0:
+        if len(tweet_data["images"]) > 0:
 
             # For each link we have we will mirror it to Imgur and update our inner links template.
-            for index, link in enumerate(tweet_data["links"]):
+            for index, link in enumerate(tweet_data["images"]):
 
                 # We upload the image to Imgur and get the new url.
                 imgur_url = upload_image(link)
 
                 # We update our inner template with both links (original and Imgur).
-                links_text += "[Image {}]({}) - [Mirror]({})\n\n".format(
+                image_links_text += "[Image {}]({}) - [Mirror]({})\n\n".format(
                     index + 1, link, imgur_url)
 
         else:
-            # If we have no links we set the links_text to an empty string.
-            links_text = ""
+            # If we have no images we set the image_links_text to an empty string.
+            image_links_text = ""
+
+        # By default we assume we have video links and initialize the inner links template.
+        video_links_text = "*****\n\n**Video(s):**\n\n"
+
+        if len(tweet_data["videos"]) > 0:
+
+            # For each link we have we will update our inner links template.
+            for index, link in enumerate(tweet_data["videos"]):
+
+                # We update our inner template with both links (original and Imgur).
+                video_links_text += "[Video {}]({})\n\n".format(
+                    index + 1, link)
+
+        else:
+            # If we have no videos we set the video_links_text to an empty string.
+            video_links_text = ""
 
         text_lines = list()
 
@@ -91,7 +107,8 @@ def transcribe_tweet(tweet_url, template):
             tweet_date,
             tweet_data["permalink"],
             tweet_text,
-            links_text,
+            image_links_text,
+            video_links_text,
             tweet_data["retweets"],
             tweet_data["favorites"],
             tweet_data["replies"]
@@ -151,6 +168,10 @@ def scrape_tweet(html):
             tag.extract()
             break
 
+        # This will convert bit.ly links to their real urls.
+        if "bit.ly" in tag.text:
+            tag.string = resolve_bitly(tag.text)
+
     # We extract all the images links.
     if has_twitter_pics:
         image_links = [tag["content"]
@@ -158,6 +179,12 @@ def scrape_tweet(html):
     else:
         # If we have no links we create an empty list.
         image_links = list()
+
+    # We get the video links.
+    video_links = list()
+
+    for tag in soup.find_all("meta", {"property": "og:video:url"}):
+        video_links.append(tag["content"])
 
     # We add a little padding for the other links inside the tweet message.
     tweet_text = tweet.text.replace("http", " http").strip()
@@ -170,6 +197,26 @@ def scrape_tweet(html):
         "favorites": favorites,
         "retweets": retweets,
         "replies": replies,
-        "links": image_links,
+        "images": image_links,
+        "videos": video_links,
         "text": tweet_text
     }
+
+
+def resolve_bitly(url):
+    """Gets the bit.ly url.
+
+    Parameters
+    ----------    
+    url : string
+        A bit.ly url.
+
+    Returns
+    -------
+    string
+        The real url.
+
+    """
+
+    with requests.head(url) as response:
+        return response.headers["location"]
