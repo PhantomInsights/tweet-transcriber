@@ -14,6 +14,13 @@ from bs4 import BeautifulSoup
 from imgur import upload_image
 
 
+URL_SHORTENERS = [
+    "bit.ly",
+    "ow.ly",
+    "tinyurl"
+]
+
+
 def transcribe_tweet(tweet_url, template):
     """Performs web scraping and fills the values from the message template.
 
@@ -168,14 +175,23 @@ def scrape_tweet(html):
             tag.extract()
             break
 
-        # This will convert bit.ly links to their real urls.
-        if "bit.ly" in tag.text:
-            tag.string = resolve_bitly(tag.text)
+        # This will convert url shorteners to their real urls.
+        for shortener in URL_SHORTENERS:
+
+            if shortener in tag.text:
+                tag.string = resolve_bitly(tag.text)
+                break
 
     # We extract all the images links.
     if has_twitter_pics:
-        image_links = [tag["content"]
-                       for tag in soup.find_all("meta", {"property": "og:image"})]
+        image_links = list()
+
+        for tag in soup.find_all("meta", {"property": "og:image"}):
+
+            tag_content_url = tag["content"]
+
+            if "video_thumb" not in tag_content_url:
+                image_links.append(tag_content_url)
     else:
         # If we have no links we create an empty list.
         image_links = list()
