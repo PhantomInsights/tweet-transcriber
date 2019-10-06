@@ -22,7 +22,7 @@ URL_SHORTENERS = [
 
 
 def transcribe_tweet(tweet_url, template):
-    """Performs web scraping and fills the values from the message template.
+    """Generates a Markdown message by Filling the values into the message template.
 
     PArameters
     ----------
@@ -173,18 +173,18 @@ def scrape_tweet(html):
         if "pic.twitter.com" in tag.text:
             has_twitter_pics = True
             tag.extract()
-            break
 
         # This will convert url shorteners to their real urls.
         for shortener in URL_SHORTENERS:
 
             if shortener in tag.text:
-                tag.string = resolve_bitly(tag.text)
+                tag.string = resolve_shortener(tag.text)
                 break
 
     # We extract all the images links.
+    image_links = list()
+
     if has_twitter_pics:
-        image_links = list()
 
         for tag in soup.find_all("meta", {"property": "og:image"}):
 
@@ -192,9 +192,6 @@ def scrape_tweet(html):
 
             if "video_thumb" not in tag_content_url:
                 image_links.append(tag_content_url)
-    else:
-        # If we have no links we create an empty list.
-        image_links = list()
 
     # We get the video links.
     video_links = list()
@@ -219,7 +216,7 @@ def scrape_tweet(html):
     }
 
 
-def resolve_bitly(url):
+def resolve_shortener(url):
     """Gets the bit.ly url.
 
     Parameters
