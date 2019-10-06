@@ -117,19 +117,40 @@ for tag in tweet.find_all("a"):
     # If the pic.twitter.com domain is found we delete the tag and break the loop.
     if "pic.twitter.com" in tag.text:
         has_twitter_pics = True
-        tag.extract()
-        break
+        tag.extract()        
 ```
 
-Something very interesting is that when a tweet has images you can find their direct urls in the `link` tags near the top of the document.
+Something very handy is that when a tweet has embedded images you can find their direct urls in the `link` tags near the top of the document.
 
 ```python
-image_links = [tag["content"] for tag in soup.find_all("meta", {"property": "og:image"})]
+image_links = list()
+
+if has_twitter_pics:
+
+    for tag in soup.find_all("meta", {"property": "og:image"}):
+
+        tag_content_url = tag["content"]
+
+        if "video_thumb" not in tag_content_url:
+            image_links.append(tag_content_url)
+```
+
+When a video is embedded in a tweet a thumbnail is added as one of the images, we detect that and ignore it.
+
+Twitter has its own set of emojis which are rendered in `<img>` tags.
+
+Fortunately Twitter also provides the system emoji in the `alt` attribute, in order to use the system emojis we will only require to detect all the `<img>` tags and set their text property equal to their `alt` attribute.
+
+```python
+for tag in tweet.find_all("img"):
+
+    if "Emoji" in tag["class"]:
+        tag.string = tag["alt"]
 ```
 
 After we got all the values mapped to variables we pack them in a dictionary and return it.
 
-This dictionary can then be easily saved to CSV or JSON files using the built in libraries.
+This dictionary can then be easily saved to CSV or JSON files using the built in modules.
 
 ## Conclusion
 
