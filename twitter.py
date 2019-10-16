@@ -181,7 +181,7 @@ def scrape_tweet(html):
                 tag.string = resolve_shortener(tag.text)
                 break
 
-        # Removes ellipsis for t.co links.
+        # Removes ellipsis from t.co links.
         tag.string = tag["data-expanded-url"]
 
     # We extract all the images links.
@@ -220,7 +220,7 @@ def scrape_tweet(html):
 
 
 def resolve_shortener(url):
-    """Gets the bit.ly url.
+    """Gets the real url from the url-shortener service.
 
     Parameters
     ----------    
