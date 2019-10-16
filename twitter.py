@@ -182,7 +182,8 @@ def scrape_tweet(html):
                 break
 
         # Removes ellipsis from t.co links.
-        tag.string = tag["data-expanded-url"]
+        if tag.get("data-expanded-url"):
+            tag.string = tag["data-expanded-url"]
 
     # We extract all the images links.
     image_links = list()
