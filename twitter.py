@@ -169,6 +169,10 @@ def scrape_tweet(html):
 
     for tag in tweet.find_all("a"):
 
+         # Removes ellipsis from t.co links.
+        if tag.get("data-expanded-url"):
+            tag.string = tag["data-expanded-url"]   
+        
         # If the pic.twitter.com domain is found we delete the tag and break the loop.
         if "pic.twitter.com" in tag.text:
             has_twitter_pics = True
@@ -179,11 +183,7 @@ def scrape_tweet(html):
 
             if shortener in tag.text:
                 tag.string = resolve_shortener(tag.text)
-                break
-
-        # Removes ellipsis from t.co links.
-        if tag.get("data-expanded-url"):
-            tag.string = tag["data-expanded-url"]
+                break        
 
     # We extract all the images links.
     image_links = list()
