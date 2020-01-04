@@ -51,7 +51,7 @@ reddit.submission(submission.id).reply(transcribe_tweetsubmission.url.replace("m
 
 This function will return us a `Markdown` formatted text that will then be used to reply to the original post. This function takes 2 parameters, a tweet url and a string template, you can find them in the templates folder.
 
-IF all this process was successful we update our processed posts log and move to the next post. If it fails we log the error for later verification.
+If all this process was successful we update our processed posts log and move to the next post. If it fails we log the error for later verification.
 
 ```python
 update_log(POSTS_LOG, submission.id)
@@ -83,7 +83,7 @@ reddit.comment(comment.id).reply("\n\n*****\n\n".join(comment_text))
 
 To extract the values from the tweet HTML source I used `BeautifulSoup` and studied where I could reliably find the values I needed, such as the number of likes, retweets, replies and the timestamp.
 
-It is very important to look for the tweet that has `jumbo` in its class name since it is the linked tweet.
+It is very important to look for the tweet that has `jumbo` in its class name since it is the linked one.
 
 ```python
 soup = BeautifulSoup(html, "html.parser")
@@ -137,9 +137,7 @@ if has_twitter_pics:
 
 When a video is embedded in a tweet a thumbnail is added as one of the images, we detect that and ignore it.
 
-Twitter has its own set of emojis which are rendered in `<img>` tags.
-
-Fortunately Twitter also provides the system emoji in the `alt` attribute, in order to use the system emojis we will only require to detect all the `<img>` tags and set their text property equal to their `alt` attribute.
+Twitter has its own set of emojis which are rendered in `<img>` tags, fortunately Twitter also provides the system emoji in the `alt` attribute, in order to use the system emojis we will only require to detect all the `<img>` tags and set their text property equal to their `alt` attribute.
 
 ```python
 for tag in tweet.find_all("img"):
