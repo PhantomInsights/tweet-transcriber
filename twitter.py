@@ -22,19 +22,19 @@ URL_SHORTENERS = [
 
 
 def transcribe_tweet(tweet_url, template):
-    """Generates a Markdown message by Filling the values into the message template.
+    """Generates a Markdown message by filling the values into the message template.
 
     PArameters
     ----------
-    tweet_url : string
+    tweet_url : str
         The tweet url.
 
-    template : string
+    template : str
         The message string template. See the template folder for details.
 
     Returns
     -------
-    string
+    str
         The post template filled with the tweet data values.
 
     """
@@ -129,7 +129,7 @@ def scrape_tweet(html):
 
     Parameters
     ----------
-    html : string
+    html : str
         The HTML source of the tweet.
 
     Returns
@@ -225,12 +225,12 @@ def resolve_shortener(url):
 
     Parameters
     ----------    
-    url : string
-        A bit.ly url.
+    url : str
+        A shortened url.
 
     Returns
     -------
-    string
+    str
         The real url.
 
     """
