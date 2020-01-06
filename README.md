@@ -14,6 +14,8 @@ The 2 most important files are:
 
 * `bot_sidewide.py` : A Reddit bot that checks all posts from the domain twitter.com and replies to them with a transcribed tweet.
 
+## Requirements
+
 This project uses the following Python libraries
 
 * `PRAW` : Makes the use of the Reddit API very easy.
@@ -147,6 +149,21 @@ for tag in tweet.find_all("img"):
 ```
 
 After we got all the values mapped to variables we pack them in a dictionary and return it.
+
+```python
+return {
+    "permalink": permalink,
+    "timestamp": timestamp,
+    "fullname": fullname,
+    "username": username,
+    "favorites": favorites,
+    "retweets": retweets,
+    "replies": replies,
+    "images": image_links,
+    "videos": video_links,
+    "text": tweet_text
+}
+```
 
 This dictionary can then be easily saved to CSV or JSON files using the built in modules.
 
