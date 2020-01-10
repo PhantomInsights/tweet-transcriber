@@ -154,7 +154,7 @@ def scrape_tweet(html):
         
         for child in soup.find("li", "ThreadedConversation--selfThread").find_all("p", "tweet-text"):
             # Add a spacer to separate tweets.
-            tweet.append(" ")
+            tweet.append("\n\n")
             tweet.append(child)
 
     favorites = int(tweet.find_next(
