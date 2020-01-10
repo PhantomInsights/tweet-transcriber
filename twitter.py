@@ -149,6 +149,14 @@ def scrape_tweet(html):
     fullname = soup.find("a", "fullname").text.strip()
     username = soup.find("div", "ProfileCardMini-screenname").text.strip()
 
+    # Check if it is a self-thread.
+    if soup.find("li", "ThreadedConversation--selfThread"):
+        
+        for child in soup.find("li", "ThreadedConversation--selfThread").find_all("p", "tweet-text"):
+            # Add a spacer to separate tweets.
+            tweet.append(" ")
+            tweet.append(child)
+
     favorites = int(tweet.find_next(
         "span", "ProfileTweet-action--favorite").find("span")["data-tweet-stat-count"])
 
@@ -171,8 +179,8 @@ def scrape_tweet(html):
 
          # Removes ellipsis from t.co links.
         if tag.get("data-expanded-url"):
-            tag.string = tag["data-expanded-url"]   
-        
+            tag.string = tag["data-expanded-url"]
+
         # If the pic.twitter.com domain is found we delete the tag and break the loop.
         if "pic.twitter.com" in tag.text:
             has_twitter_pics = True
@@ -183,7 +191,7 @@ def scrape_tweet(html):
 
             if shortener in tag.text:
                 tag.string = resolve_shortener(tag.text)
-                break        
+                break
 
     # We extract all the images links.
     image_links = list()
