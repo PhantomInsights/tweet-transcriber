@@ -194,13 +194,16 @@ def scrape_tweet(data):
     url_links = list()
 
     # We look for all the links in the tweet and unshorten them.
-    for link in tweet["entities"]["urls"]:
+    for item in tweet["entities"]["urls"]:
+        
+        link = item["expanded_url"]
+        
         for shortener in URL_SHORTENERS:
             if shortener in link:
                 link = resolve_shortener(link)
                 break
 
-        url_links.appned(link)
+        url_links.append(link)
 
     # We add a little padding for the other links inside the tweet message.
     tweet_text = tweet["full_text"].split(

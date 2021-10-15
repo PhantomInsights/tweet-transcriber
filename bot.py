@@ -5,6 +5,7 @@ If it finds tweet links it replies to them with a transcribed tweet.
 """
 
 import praw
+from bs4 import BeautifulSoup
 
 import config
 from twitter import transcribe_tweet

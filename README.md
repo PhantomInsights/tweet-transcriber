@@ -20,6 +20,7 @@ This project uses the following Python libraries
 
 * `PRAW` : Makes the use of the Reddit API very easy.
 * `Requests` : To perform HTTP requests to twitter.com.
+* `BeautifulSoup` : To extract twitter urls from the Reddit comments
 
 ## Reddit Bots
 
