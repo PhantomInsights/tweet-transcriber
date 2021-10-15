@@ -1,16 +1,16 @@
 # Tweet Transcriber
 
-This project implements a custom algorithm that extracts the most important values from a given tweet url, converts it into a `MArkdown`  formatted text and mirrors any images into `Imgur`.
+This project implements a custom algorithm that extracts the most important values from a given tweet url, converts it into a `Markdown`  formatted text and mirrors any images into `Imgur`.
 
 The formatted message and images are then posted to `Reddit` with a simple bot framework.
 
-The code has been organized in a way that you will only require to call one function with a tweet HTML source and you will get all the important values in a dictionary. This way you can integrate it into your data pipelines with very low effort.
+The code has been organized in a way that you will only require to call one function with a tweet JSON source and you will get all the important values in a dictionary. This way you can integrate it into your data pipelines with very low effort.
 
 It was fully developed in `Python` and it is inspired by similar projects seen on `Reddit` that appear to be defunct.
 
 The 2 most important files are:
 
-* `twitter.py` : This script includes 2 functions, one extracts all important values from a tweet HTML source and the other creates a `Markdown` text and mirrors twitter images to Imgur.
+* `twitter.py` : This script includes 2 functions, one extracts all important values from a tweet JSON source and the other creates a `Markdown` text and mirrors twitter images to Imgur.
 
 * `bot_sidewide.py` : A Reddit bot that checks all posts from the domain twitter.com and replies to them with a transcribed tweet.
 
@@ -19,8 +19,7 @@ The 2 most important files are:
 This project uses the following Python libraries
 
 * `PRAW` : Makes the use of the Reddit API very easy.
-* `Requests` : To perform HTTP `get` requests to twitter.com.
-* `BeautifulSoup` : Used for extracting tweet data.
+* `Requests` : To perform HTTP requests to twitter.com.
 
 ## Reddit Bots
 
@@ -81,91 +80,15 @@ This list is then joined into a string and this string is then used to reply to 
 reddit.comment(comment.id).reply("\n\n*****\n\n".join(comment_text))
 ```
 
-## Web Scraper
+## Tweet Scraper
 
-To extract the values from the tweet HTML source I used `BeautifulSoup` and studied where I could reliably find the values I needed, such as the number of likes, retweets, replies and the timestamp.
+To extract the values from the tweet JSON source I used the same technique as other Twitter content downloaders.
 
-It is very important to look for the tweet that has `jumbo` in its class name since it is the linked one.
+You must first request a `guest_token` to the Twitter API sneding a harcoded `Bearer Token`.
 
-```python
-soup = BeautifulSoup(html, "html.parser")
+Once you get the `guest_token` you can sign with it some of the Twitter read-only endpoints, cush as `statuses/show.json` which is used in this project.
 
-tweet = soup.find("p", "TweetTextSize--jumbo")
-
-permalink = soup.find("link", {"rel": "canonical"})["href"]
-timestamp = int(tweet.find_previous("span", "_timestamp")["data-time"])
-fullname = soup.find("a", "fullname").text.strip()
-username = soup.find("div", "ProfileCardMini-screenname").text.strip()
-
-favorites = int(tweet.find_next(
-    "span", "ProfileTweet-action--favorite").find("span")["data-tweet-stat-count"])
-
-retweets = int(tweet.find_next(
-    "span", "ProfileTweet-action--retweet").find("span")["data-tweet-stat-count"])
-
-replies = int(tweet.find_next(
-    "span", "ProfileTweet-action--reply").find("span")["data-tweet-stat-count"])
-```
-
-In the HTML of the tweet body we can find several anchor tags, each tag represents a link the user typed in. But something very important is that a tag pointing to `pic.twitter.com` means that the tweet contains one or more images.
-
-We check for that and if the link does exist we remove it from the tweet body and begin looking for the embedded images urls.
-
-```python
-has_twitter_pics = False
-
-for tag in tweet.find_all("a"):
-
-    # If the pic.twitter.com domain is found we delete the tag and break the loop.
-    if "pic.twitter.com" in tag.text:
-        has_twitter_pics = True
-        tag.extract()        
-```
-
-Something very handy is that when a tweet has embedded images you can find their direct urls in the `link` tags near the top of the document.
-
-```python
-image_links = list()
-
-if has_twitter_pics:
-
-    for tag in soup.find_all("meta", {"property": "og:image"}):
-
-        tag_content_url = tag["content"]
-
-        if "video_thumb" not in tag_content_url:
-            image_links.append(tag_content_url)
-```
-
-When a video is embedded in a tweet a thumbnail is added as one of the images, we detect that and ignore it.
-
-Twitter has its own set of emojis which are rendered in `<img>` tags, fortunately Twitter also provides the system emoji in the `alt` attribute, in order to use the system emojis we will only require to detect all the `<img>` tags and set their text property equal to their `alt` attribute.
-
-```python
-for tag in tweet.find_all("img"):
-
-    if "Emoji" in tag["class"]:
-        tag.string = tag["alt"]
-```
-
-After we got all the values mapped to variables we pack them in a dictionary and return it.
-
-```python
-return {
-    "permalink": permalink,
-    "timestamp": timestamp,
-    "fullname": fullname,
-    "username": username,
-    "favorites": favorites,
-    "retweets": retweets,
-    "replies": replies,
-    "images": image_links,
-    "videos": video_links,
-    "text": tweet_text
-}
-```
-
-This dictionary can then be easily saved to CSV or JSON files using the built in modules.
+You will receive almost the same JSON as with the regular API.
 
 ## Conclusion
 
