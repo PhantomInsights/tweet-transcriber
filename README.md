@@ -20,7 +20,7 @@ This project uses the following Python libraries
 
 * `PRAW` : Makes the use of the Reddit API very easy.
 * `Requests` : To perform HTTP requests to twitter.com.
-* `BeautifulSoup` : To extract twitter urls from the Reddit comments
+* `BeautifulSoup` : To extract twitter urls from the Reddit comments.
 
 ## Reddit Bots
 
@@ -85,11 +85,11 @@ reddit.comment(comment.id).reply("\n\n*****\n\n".join(comment_text))
 
 To extract the values from the tweet JSON source I used the same technique as other Twitter content downloaders.
 
-You must first request a `guest_token` to the Twitter API sneding a harcoded `Bearer Token`.
+You must first request a `guest_token` to the Twitter API sending a harcoded `Bearer Token`.
 
 Once you get the `guest_token` you can sign with it some of the Twitter read-only endpoints, cush as `statuses/show.json` which is used in this project.
 
-You will receive almost the same JSON as with the regular API.
+You will receive almost the same JSON as with the regular API, which contains the most useful fields such as the Tweet contents and its author metadata.
 
 ## Conclusion
 
