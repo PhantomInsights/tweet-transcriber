@@ -28,7 +28,7 @@ def upload_image(image_url):
     with requests.get(image_url, headers=headers) as image_response:
 
         # We extract the file extension from the url.
-        file_extension = image_url.split(".")[-1].split(":")[0]
+        file_extension = image_url.split(".")[-1].split("?")[0]
         file_name = "./temp." + file_extension
 
         # We store the file in the current folder.

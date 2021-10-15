@@ -6,12 +6,19 @@ The other one creates a Markdown text with the previous generated values and
 mirrors the tweet's images to Imgur.
 """
 
+import json
 from datetime import datetime
 
 import requests
-from bs4 import BeautifulSoup
 
 from imgur import upload_image
+
+
+HEADERS = {
+    "Authorization": "Bearer AAAAAAAAAAAAAAAAAAAAAPYXBAAAAAAACLXUNDekMxqa8h%2F40K4moUkGsoc%3DTYfbDKbT3jJPCEVnMYqilB28NHfOPqkca3qaAxGfsyKCs0wRbw"
+}
+
+BASE_URL = "https://api.twitter.com/1.1/"
 
 
 URL_SHORTENERS = [
@@ -39,11 +46,14 @@ def transcribe_tweet(tweet_url, template):
 
     """
 
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101 Firefox/68.0"}
+    request_token()
+
+    tweet_id = tweet_url.split("/status/")[-1].split("?")[0]
+    final_url = BASE_URL + \
+        f"statuses/show.json?id={tweet_id}&tweet_mode=extended"
 
     # We make a GET requeswt to the tweet url.
-    with requests.get(tweet_url, headers=headers) as tweet_response:
+    with requests.get(final_url, headers=HEADERS) as tweet_response:
 
         # We send the HTML source of the tweet to the scrape_Tweet function.
         tweet_data = scrape_tweet(tweet_response.text)
@@ -52,19 +62,19 @@ def transcribe_tweet(tweet_url, template):
         tweet_date = datetime.fromtimestamp(tweet_data["timestamp"])
 
         # By default we assume we have image links and initialize the inner links template.
-        image_links_text = "*****\n\n**Image(s):**\n\n"
+        image_links_text = "*****\n\n**Imágenes:**\n\n"
 
         if len(tweet_data["images"]) > 0:
 
             # For each link we have we will mirror it to Imgur and update our inner links template.
-            for index, link in enumerate(tweet_data["images"]):
+            for index, link in enumerate(tweet_data["images"], 1):
 
                 # We upload the image to Imgur and get the new url.
                 imgur_url = upload_image(link)
 
                 # We update our inner template with both links (original and Imgur).
-                image_links_text += "[Image {}]({}) - [Mirror]({})\n\n".format(
-                    index + 1, link, imgur_url)
+                image_links_text += "[Imagen {}]({}) - [Mirror]({})\n\n".format(
+                    index, link, imgur_url)
 
         else:
             # If we have no images we set the image_links_text to an empty string.
@@ -76,15 +86,29 @@ def transcribe_tweet(tweet_url, template):
         if len(tweet_data["videos"]) > 0:
 
             # For each link we have we will update our inner links template.
-            for index, link in enumerate(tweet_data["videos"]):
+            for index, link in enumerate(tweet_data["videos"], 1):
 
-                # We update our inner template with both links (original and Imgur).
-                video_links_text += "[Video {}]({})\n\n".format(
-                    index + 1, link)
+                # We update our inner template with the links.
+                video_links_text += "[Video {}]({})\n\n".format(index, link)
 
         else:
             # If we have no videos we set the video_links_text to an empty string.
             video_links_text = ""
+
+        # By default we assume we have url links and initialize the inner links template.
+        url_links_text = "*****\n\n**Link(s):**\n\n"
+
+        if len(tweet_data["links"]) > 0:
+
+            # For each link we have we will update our inner links template.
+            for index, link in enumerate(tweet_data["links"], 1):
+
+                # We update our inner template with the links.
+                url_links_text += "[Link {}]({})\n\n".format(index, link)
+
+        else:
+            # If we have no links we set the video_links_text to an empty string.
+            url_links_text = ""
 
         text_lines = list()
 
@@ -116,21 +140,21 @@ def transcribe_tweet(tweet_url, template):
             tweet_text,
             image_links_text,
             video_links_text,
+            url_links_text,
             tweet_data["retweets"],
-            tweet_data["favorites"],
-            tweet_data["replies"]
+            tweet_data["favorites"]
         )
 
         return post_text
 
 
-def scrape_tweet(html):
-    """Extracts data from the tweet HTML source.
+def scrape_tweet(data):
+    """Extracts data from the tweet JSON file.
 
     Parameters
     ----------
-    html : str
-        The HTML source of the tweet.
+    data : str
+        The tweet JSON string.
 
     Returns
     -------
@@ -140,92 +164,68 @@ def scrape_tweet(html):
     """
 
     # We init the BeautifulSoup object and begin extracting values.
-    soup = BeautifulSoup(html, "html.parser")
+    tweet = json.loads(data)
 
-    tweet = soup.find("p", "TweetTextSize--jumbo")
+    timestamp = datetime.strptime(
+        tweet["created_at"], "%a %b %d %H:%M:%S +0000 %Y").timestamp()
 
-    permalink = soup.find("link", {"rel": "canonical"})["href"]
-    timestamp = int(tweet.find_previous("span", "_timestamp")["data-time"])
-    fullname = soup.find("a", "fullname").text.strip()
-    username = soup.find("div", "ProfileCardMini-screenname").text.strip()
+    tweet_id = tweet["id"]
+    fullname = tweet["user"]["name"]
+    username = tweet["user"]["screen_name"]
+    permalink = f"https://twitter.com/status/{username}/{tweet_id}"
 
-    # Check if it is a self-thread.
-    if soup.find("li", "ThreadedConversation--selfThread"):
-        
-        for child in soup.find("li", "ThreadedConversation--selfThread").find_all("p", "tweet-text"):
-            # Add a spacer to separate tweets.
-            tweet.append("\n\n")
-            tweet.append(child)
+    favorites = tweet["favorite_count"]
+    retweets = tweet["retweet_count"]
 
-    favorites = int(tweet.find_next(
-        "span", "ProfileTweet-action--favorite").find("span")["data-tweet-stat-count"])
-
-    retweets = int(tweet.find_next(
-        "span", "ProfileTweet-action--retweet").find("span")["data-tweet-stat-count"])
-
-    replies = int(tweet.find_next(
-        "span", "ProfileTweet-action--reply").find("span")["data-tweet-stat-count"])
-
-    # Fix for emojis so they appear in text and not as images.
-    for tag in tweet.find_all("img"):
-
-        if "Emoji" in tag["class"]:
-            tag.string = tag["alt"]
-
-    # We check if the tweet has embedded pictures.
-    has_twitter_pics = False
-
-    for tag in tweet.find_all("a"):
-
-         # Removes ellipsis from t.co links.
-        if tag.get("data-expanded-url"):
-            tag.string = tag["data-expanded-url"]
-
-        # If the pic.twitter.com domain is found we delete the tag and break the loop.
-        if "pic.twitter.com" in tag.text:
-            has_twitter_pics = True
-            tag.extract()
-
-        # This will convert url shorteners to their real urls.
-        for shortener in URL_SHORTENERS:
-
-            if shortener in tag.text:
-                tag.string = resolve_shortener(tag.text)
-                break
-
-    # We extract all the images links.
+    # We extract all the images and video links.
     image_links = list()
-
-    if has_twitter_pics:
-
-        for tag in soup.find_all("meta", {"property": "og:image"}):
-
-            tag_content_url = tag["content"]
-
-            if "video_thumb" not in tag_content_url:
-                image_links.append(tag_content_url)
-
-    # We get the video links.
     video_links = list()
 
-    for tag in soup.find_all("meta", {"property": "og:video:url"}):
-        video_links.append(tag["content"])
+    if "extended_entities" in tweet:
+
+        for item in tweet["extended_entities"]["media"]:
+
+            if item["type"] == "photo":
+                image_links.append(
+                    item["media_url_https"] + "?format=jpg&name=4096x4096")
+            elif item["type"] == "video":
+                video_links.append(item["video_info"]["variants"][0]["url"])
+
+    url_links = list()
+
+    # We look for all the links in the tweet and unshorten them.
+    for link in tweet["entities"]["urls"]:
+        for shortener in URL_SHORTENERS:
+            if shortener in link:
+                link = resolve_shortener(link)
+                break
+
+        url_links.appned(link)
 
     # We add a little padding for the other links inside the tweet message.
-    tweet_text = tweet.text.replace("http", " http").strip()
+    tweet_text = tweet["full_text"].split(
+        "https://t.co")[0].split("http://t.co")[0].strip()
 
     return {
         "permalink": permalink,
-        "timestamp": timestamp,
+        "timestamp": int(timestamp),
         "fullname": fullname,
         "username": username,
         "favorites": favorites,
         "retweets": retweets,
-        "replies": replies,
         "images": image_links,
         "videos": video_links,
+        "links": url_links,
         "text": tweet_text
     }
+
+
+def request_token():
+    """Gets a Guest Token from the API."""
+
+    with requests.post(BASE_URL + "guest/activate.json", headers=HEADERS) as response:
+        guest_token = response.json()["guest_token"]
+        HEADERS["x-guest-token"] = guest_token
 
 
 def resolve_shortener(url):

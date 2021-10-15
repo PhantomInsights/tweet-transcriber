@@ -1,3 +1,2 @@
-bs4
 praw
 requests
