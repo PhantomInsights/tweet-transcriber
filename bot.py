@@ -5,7 +5,6 @@ If it finds tweet links it replies to them with a transcribed tweet.
 """
 
 import praw
-from bs4 import BeautifulSoup
 
 import config
 from twitter import transcribe_tweet
@@ -14,6 +13,7 @@ COMMENTS_LOG = "./processed_comments.txt"
 POSTS_LOG = "./processed_posts.txt"
 ERROR_LOG = "./error.log"
 
+# Don't forget to use the template for your language.
 MESSAGE_TEMPLATE = open("./templates/es.txt", "r", encoding="utf-8").read()
 
 
