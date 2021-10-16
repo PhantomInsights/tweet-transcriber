@@ -172,7 +172,7 @@ def scrape_tweet(data):
     tweet_id = tweet["id"]
     fullname = tweet["user"]["name"]
     username = tweet["user"]["screen_name"]
-    permalink = f"https://twitter.com/status/{username}/{tweet_id}"
+    permalink = f"https://twitter.com/{username}/status/{tweet_id}"
 
     favorites = tweet["favorite_count"]
     retweets = tweet["retweet_count"]
