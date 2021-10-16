@@ -188,7 +188,8 @@ def scrape_tweet(data):
                 image_links.append(
                     item["media_url_https"] + "?format=jpg&name=4096x4096")
             elif item["type"] == "video":
-                video_links.append(item["video_info"]["variants"][0]["url"])
+                # Select the best available video quality.
+                video_links.append(item["video_info"]["variants"][-1]["url"])
 
     url_links = list()
 
