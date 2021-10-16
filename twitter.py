@@ -163,7 +163,6 @@ def scrape_tweet(data):
 
     """
 
-    # We init the BeautifulSoup object and begin extracting values.
     tweet = json.loads(data)
 
     timestamp = datetime.strptime(
