@@ -1,6 +1,6 @@
 """
 This script has 2 functions, one is used to extract the values we need from
-a Tweet HTML source.
+a Tweet JSON response.
 
 The other one creates a Markdown text with the previous generated values and
 mirrors the tweet's images to Imgur.
@@ -165,8 +165,8 @@ def scrape_tweet(data):
 
     tweet = json.loads(data)
 
-    timestamp = datetime.strptime(
-        tweet["created_at"], "%a %b %d %H:%M:%S +0000 %Y").timestamp()
+    timestamp = int(datetime.strptime(
+        tweet["created_at"], "%a %b %d %H:%M:%S +0000 %Y").timestamp())
 
     tweet_id = tweet["id"]
     fullname = tweet["user"]["name"]
@@ -195,9 +195,9 @@ def scrape_tweet(data):
 
     # We look for all the links in the tweet and unshorten them.
     for item in tweet["entities"]["urls"]:
-        
+
         link = item["expanded_url"]
-        
+
         for shortener in URL_SHORTENERS:
             if shortener in link:
                 link = resolve_shortener(link)
@@ -205,13 +205,13 @@ def scrape_tweet(data):
 
         url_links.append(link)
 
-    # We add a little padding for the other links inside the tweet message.
+    # We remove the t.co links from the tweet text.
     tweet_text = tweet["full_text"].split(
         "https://t.co")[0].split("http://t.co")[0].strip()
 
     return {
         "permalink": permalink,
-        "timestamp": int(timestamp),
+        "timestamp": timestamp,
         "fullname": fullname,
         "username": username,
         "favorites": favorites,
