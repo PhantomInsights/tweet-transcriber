@@ -189,8 +189,16 @@ def scrape_tweet(data):
                     item["media_url_https"] + "?format=jpg&name=4096x4096")
             elif item["type"] == "video":
                 # Select the best available video quality.
-                video_links.append(item["video_info"]["variants"][-1]["url"])
+                bitrate = 0
+                video_url = ""
 
+                for video in item["video_info"]["variants"]:
+                    if video.get("bitrate", 0) > bitrate:
+                        bitrate = video["bitrate"]
+                        video_url = video["url"]
+
+                video_links.append(video_url)
+    
     url_links = list()
 
     # We look for all the links in the tweet and unshorten them.
