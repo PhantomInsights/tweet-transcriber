@@ -139,7 +139,7 @@ def update_log(log_file, item_id):
     """
 
     with open(log_file, "a", encoding="utf-8") as temp_file:
-        return temp_file.write("{}\n".format(item_id))
+        temp_file.write("{}\n".format(item_id))
 
 
 def log_error(error_message):
@@ -153,7 +153,7 @@ def log_error(error_message):
     """
 
     with open(ERROR_LOG, "a", encoding="utf-8") as log_file:
-        return log_file.write("{}\n".format(error_message))
+        log_file.write("{}\n".format(error_message))
 
 
 if __name__ == "__main__":
