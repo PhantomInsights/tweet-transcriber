@@ -102,6 +102,9 @@ def transcribe_tweet(tweet_url, template):
 
             # For each link we have we will update our inner links template.
             for index, link in enumerate(tweet_data["links"], 1):
+                
+                # Fix for urls with parenthesis.
+                link = link.replace("(", "\(").replace(")", "\)")
 
                 # We update our inner template with the links.
                 url_links_text += "[Link {}]({})\n\n".format(index, link)
